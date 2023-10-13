@@ -95,7 +95,7 @@ def edit_image(image, current_button_CS, threshold_CS, root_CS):
         print("이미지 파일을 찾을 수 없a니다.")
         sys.exit()
     image = remapping_image(image)
-    dst = remapping_image(image)
+
     # 이미지 크기 및 중심 좌표 계산
     global width ,height
     height, width = image.shape[:2]
@@ -186,8 +186,7 @@ def edit_image(image, current_button_CS, threshold_CS, root_CS):
                 dst = image
                 dst = cv2.resize(dst,(int(height*1.3),height))
                 break
-        
-    IS.image_save(dst, "Origin", current_button)
+        IS.image_save(dst, "Origin", current_button)
     return perform_object_detection(dst)
 
 # edit_image()로 다듬은 사진의 유닛 갯수와 빈칸 여부를 탐색하는 함수
@@ -280,6 +279,9 @@ def perform_object_detection(frame):
         # 윤곽선 면적 계산
         contour_area = sum(cv2.contourArea(contour) for contour in cell_contours)
 
+        if contour_area > 1:
+
+        
         if sum(cv2.contourArea(contour) for contour in cell_contours) > 1:
             # 윤곽선 면적 계산
             contour_area = sum(cv2.contourArea(contour) for contour in cell_contours)
