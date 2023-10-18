@@ -1,4 +1,3 @@
-#Ver.23.10.
 import sys
 import cv2
 import os
