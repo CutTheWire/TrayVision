@@ -63,7 +63,6 @@ class Edit:
     def preprocessing_image(self, image: np.ndarray) -> np.ndarray:
         # 그레이스케일 변환
         binary = self.on_slider_blurred(image)
-        
         # 윤곽선 찾기
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         filtered_contours = []
@@ -73,17 +72,15 @@ class Edit:
         for contour in contours:
             area = cv2.contourArea(contour)
             if area > min_contour_area:
-                filtered_contours.append(contour)
+                filtered_contours.append(self.coordinate_extraction(contour))
         return filtered_contours
 
     # 꼭지점 좌표 추출
-    def coordinate_extraction(self, contours: np.ndarray) -> np.ndarray:
-        for contour in contours:
-            # 윤곽선 근사화
-            epsilon = 0.02 * cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, epsilon, True)
-            
-            return approx
+    def coordinate_extraction(self, contour: np.ndarray) -> np.ndarray:
+        # 윤곽선 근사화
+        epsilon = 0.02 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+        return approx
         
     # perform_object_detection()에서 이미지 전처리 및 탐색 전 셀 구분선 생성
     def edit_image(self) -> np.ndarray:
@@ -93,15 +90,13 @@ class Edit:
         image = self.remapping_image(image)
         dst = self.remapping_image(image)
         # 이미지 크기 및 중심 좌표 계산
-        global width ,height
         height, width = image.shape[:2]
 
         # 꼭지점 좌표 추출용 배열
         location_nparr = []
         approx = []
         while len(approx) != 4:
-            contours =  self.preprocessing_image(image)
-            approx = self.coordinate_extraction(contours)
+            approx = self.preprocessing_image(image)
 
             if approx is None:
                 approx = []
@@ -174,13 +169,12 @@ class Edit:
                 location2 = np.array([[0, 0], [0, height], [width, 0], [width, height]], np.float32)
                 pers = cv2.getPerspectiveTransform(location, location2)
                 dst = cv2.warpPerspective(image, pers, (width, height))
-                dst = cv2.resize(dst,(int(height*1.3),height))
+                break
 
             else:
                 self.m += 2
                 if self.m == 101:
                     dst = image
-                    dst = cv2.resize(dst,(int(height*1.3),height))
                     break
         return dst
 
@@ -201,17 +195,17 @@ class perform_object_detection:
     def tray_cell(self) -> None:
         self.cell_width = self.width // 10
         if self.current_button == "10x10":
-            self.cell_height = height // 10
+            self.cell_height = self.height // 10
 
         elif self.current_button == "5x10":
-            self.cell_height = height // 5
+            self.cell_height = self.height // 5
 
         elif self.current_button == "S_10x10":
-            self.cell_height = height // 10
+            self.cell_height = self.height // 10
 
         elif self.current_button == "200-1":
-            self.cell_height = int((height / 13))
-            self.cell_width = int((width / 17))
+            self.cell_height = int((self.height / 13))
+            self.cell_width = int((self.width / 16))
 
     def cell_i(self, i: int) -> float:# cell 좌표 계산 함수
         cell_x = i * self.cell_width
@@ -227,22 +221,21 @@ class perform_object_detection:
     def line_draw(self) -> None:
         if self.current_button == "200-1":
             # 구분선 가로와 세로
-            for i in range(1, 18):
+            for i in range(1, 16):
                 cell_x, cell_y = self.cell_i(i)
-                if  i <= 15:
-                    self.cell_draw(cell_x, 0, cell_x, height)
+                if  i <= 16:
+                    self.cell_draw(cell_x, 0, cell_x, self.height)
                     
                 if i <= 12:
-                    self.cell_draw(0, cell_y, width, cell_y)
+                    self.cell_draw(0, cell_y, self.width, cell_y)
                 
         else:
-            for i in range(1, width // self.cell_width):
+            for i in range(1, self.width // self.cell_width):
                 cell_x = i * self.cell_width
-                self.cell_draw(cell_x, 0, cell_x, height)
-
-            for i in range(1, height // self.cell_height):
-                cell_y = i * self.cell_height
-                self.cell_draw(0, cell_y, width, cell_y)
+                self.cell_draw(cell_x, 0, cell_x, self.height)
+                if self.cell_height <= i * self.cell_height:
+                    cell_y = i * self.cell_height
+                    self.cell_draw(0, cell_y, self.width, cell_y)
 
     def image_inRange(self) -> None:
         if self.current_button == "10x10" or "5x10":
@@ -338,7 +331,7 @@ class perform_object_detection:
             예를 들어 "// 3" 대신 "// 2"로 변경하여 더 큰 원을 그릴 수 있습니다.
             '''
             cv2.circle(result_image, (cell_x, cell_y),
-                            radius=self.cell_width//3,
+                            radius=self.cell_width//4,
                             color=(255, 0, 0),
                             thickness=2)  # 파란색 원 그리기
         return result_image

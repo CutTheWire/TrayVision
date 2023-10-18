@@ -74,6 +74,7 @@ class MainView:
         # 그리드의 크기를 설정합니다.
         self.root.grid_rowconfigure((0,2,3,4), weight=1)
         self.root.grid_rowconfigure(1, weight=15)
+        self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=10)
         # Frame 생성
         self.frame1 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height)
@@ -348,15 +349,12 @@ if __name__ == "__main__":
 
         while cam.is_camera_open():
             frame = cam.get_frame()  # 프레임 가져오기
-            copy_image = copy.deepcopy(frame)
-            app.button_image = copy_image
+            app.button_image = frame
 
             # 비디오 레이블 이미지
             height, width = frame.shape[:2]
             cut_width = width//9
-            frame = frame[:,cut_width : width-cut_width]
-            fream_Resolution = IC.Scale_Resolution(frame, 0.7)
-            video_label_image = cv2.resize(frame, fream_Resolution)
+            video_label_image = frame[:,cut_width : width-cut_width]
 
             try:
                 image_tk = ImageTk.PhotoImage(

@@ -150,7 +150,7 @@ class ImageCV:
     def Image_empty(self, image: np.ndarray) -> np.ndarray:
         height, width, channels = image.shape
         # 상단에 추가할 빈 공간의 높이 설정
-        top_padding = height//12  # 원하는 높이로 설정
+        top_padding =120  # 원하는 높이로 설정
         # 여백을 추가할 새로운 이미지 생성
         new_height = height + top_padding
         new_image = np.zeros((new_height, width, channels), dtype=np.uint8)
