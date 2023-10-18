@@ -86,20 +86,12 @@ def coordinate_extraction(contours):
         return approx
     
 # perform_object_detection()에서 이미지 전처리 및 탐색 전 셀 구분선 생성
-def edit_image(image, current_button_CS, threshold_CS, root_CS):
-    global current_button, threshold, root, m
-
-    root = root_CS; current_button = current_button_CS; threshold = threshold_CS
-
+def edit_image()
     if image is None:
         print("이미지 파일을 찾을 수 없a니다.")
         sys.exit()
     image = remapping_image(image)
-
-    # 이미지 크기 및 중심 좌표 계산
-    global width ,height
-    height, width = image.shape[:2]
-
+    
     # 꼭지점 좌표 추출용 배열
     location_nparr = []
     approx = []
