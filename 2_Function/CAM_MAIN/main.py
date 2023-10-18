@@ -12,6 +12,7 @@ from PIL import Image, ImageTk
 from PyQt5.QtWidgets import QApplication
 import matplotlib.pyplot as plt
 from screeninfo import get_monitors
+import time
 
 import bin.logo_data as logo_image
 import bin.set_data as set_image
@@ -60,6 +61,7 @@ class MainView:
         L_image = tk.PhotoImage(data=logo_image.image_base64)
         S_image = tk.PhotoImage(data=set_image.image_base64)
 
+
         # root 설정
         self.root = root
         self.root.title("Micro_TWCV")
@@ -69,32 +71,34 @@ class MainView:
         
         monitors = get_monitors()
         self.screen_width, self.screen_height = monitors[0].width, monitors[0].height
-        self.frame_height = self.screen_height // 20
+        print(self.screen_width//self.screen_height)
+        self.frame_height = self.screen_height // 10
 
         # 그리드의 크기를 설정합니다.
-        self.root.grid_rowconfigure((0,2,3,4), weight=1)
+        self.root.grid_rowconfigure(4, weight=1)
         self.root.grid_rowconfigure(1, weight=15)
+        self.root.grid_rowconfigure((0,2,3), weight=0)
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=10)
         # Frame 생성
         self.frame1 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height)
         self.frame2_1 = tk.Frame(self.root, width=self.screen_width, height = (self.screen_height - self.frame_height*4))
         self.frame2_2 = tk.Frame(self.root, width=self.screen_width, height = (self.screen_height - self.frame_height*4))
-        self.frame3 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height)
-        self.frame4 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height)
-        self.frame5 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height)
+        self.frame3 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height*2)
+        self.frame4 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height*2)
+        self.frame5 = tk.Frame(self.root, width=self.screen_width, height = self.frame_height*2)
         # Frame 배치
         self.frame1.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="new")
         self.frame2_1.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         self.frame2_2.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
-        self.frame3.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="sew")
-        self.frame4.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="sew")
+        self.frame3.grid(row=2, column=0, columnspan=2, padx=5, pady=10, sticky="sew")
+        self.frame4.grid(row=3, column=0, columnspan=2, padx=5, pady=10, sticky="sew")
         self.frame5.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
         # 그리드의 크기를 설정합니다
-        self.frame3.columnconfigure((0, 1, 2), weight=0)
+        self.frame3.columnconfigure((0, 1), weight=0)
         self.frame3.columnconfigure(2, weight= 1)
-        self.frame4.columnconfigure((0, 1, 2), weight=0)
+        self.frame4.columnconfigure((0, 1), weight=0)
         self.frame4.columnconfigure(2, weight= 1)
         # Lable 생성
         self.Label2_1 = tk.Label(self.frame2_1)
@@ -108,12 +112,12 @@ class MainView:
         # Lable 배치
         self.Label2_1.pack(fill=tk.BOTH, expand=True)
         self.Label2_2.pack(fill=tk.BOTH, expand=True)
-        self.Label3_1.grid(row=0, column=0, padx=10, pady=10, sticky="nsw")
-        self.Label3_2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        self.Label3_3.grid(row=0, column=2, padx=10, pady=10, sticky="nse")
-        self.Label4_1.grid(row=0, column=0, padx=10, pady=10, sticky="nsw")
-        self.Label4_2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        self.Label4_3.grid(row=0, column=2, padx=10, pady=10, sticky="nse")
+        self.Label3_1.grid(row=0, column=0, padx=0, pady=10, sticky="nsw")
+        self.Label3_2.grid(row=0, column=1, padx=0, pady=10, sticky="nsew")
+        self.Label3_3.grid(row=0, column=2, padx=0, pady=10, sticky="nse")
+        self.Label4_1.grid(row=0, column=0, padx=0, pady=10, sticky="nsw")
+        self.Label4_2.grid(row=0, column=1, padx=0, pady=10, sticky="nsew")
+        self.Label4_3.grid(row=0, column=2, padx=0, pady=10, sticky="nse")
 
         # frame1
         self.exit_button = tk.Button(self.frame1, text="X", command=lambda: self.exit_clicked(), width=4)
@@ -343,6 +347,7 @@ if __name__ == "__main__":
         app.output_list.insert(tk.END, f"{cam.name} 카메라 활성화")
         app.output_list.insert(tk.END, f"카메라 해상도 {app.screen_width}, {(app.screen_width*9)//16}")
         app.output_list.insert(tk.END, f"ㅤ")
+        time.sleep(1)
         loading_screen.close()
 
         IC = ImageCV()

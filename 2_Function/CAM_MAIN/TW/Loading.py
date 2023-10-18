@@ -61,3 +61,4 @@ class LoadingScreen(QWidget):
     def close(self):
         # 로딩 창을 닫음
         super().close()
+        

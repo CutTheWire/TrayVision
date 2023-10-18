@@ -64,7 +64,8 @@ class Edit:
         # 그레이스케일 변환
         binary = self.on_slider_blurred(image)
         # 윤곽선 찾기
-        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, 
+                                       cv2.CHAIN_APPROX_SIMPLE)
         filtered_contours = []
 
         # 윤곽선을 순회하며 면적이 일정 크기 이상인 윤곽선만 저장
