@@ -28,7 +28,7 @@ class Edit:
 
     def remapping_image(self, frame: np.ndarray) -> np.ndarray:
         # 왜곡 계수 설정
-        k1, k2, k3 = -0.01, 0.0, 0.0  # 핀큐션 왜곡
+        k1, k2, k3 = -0.02, 0.0, 0.0  # 핀큐션 왜곡
         rows, cols = frame.shape[:2]
 
         # 매핑 배열 생성
@@ -64,8 +64,7 @@ class Edit:
         # 그레이스케일 변환
         binary = self.on_slider_blurred(image)
         # 윤곽선 찾기
-        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, 
-                                       cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         filtered_contours = []
 
         # 윤곽선을 순회하며 면적이 일정 크기 이상인 윤곽선만 저장
@@ -82,6 +81,23 @@ class Edit:
         epsilon = 0.02 * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
         return approx
+    
+    def adjust_location(self, location, x_factor, y_factor, x_1_factor, y_1_factor):
+        x = int(location[0][0] * x_factor)
+        x_1 = int(location[0][0] * x_1_factor)
+        y = int(location[0][1] * y_factor)
+        y_1 = int(location[0][1] * y_1_factor)
+
+        location[0][0] += x_1
+        location[2][0] -= x
+        location[0][1] += y
+        location[2][1] += y
+        location[1][0] += x_1
+        location[3][0] -= x
+        location[1][1] -= y_1
+        location[3][1] -= y_1
+        return location
+
         
     # perform_object_detection()에서 이미지 전처리 및 탐색 전 셀 구분선 생성
     def edit_image(self) -> np.ndarray:
@@ -89,95 +105,46 @@ class Edit:
         if image is None:
             sys.exit()
         image = self.remapping_image(image)
-        dst = self.remapping_image(image)
-        # 이미지 크기 및 중심 좌표 계산
+        dst = image
         height, width = image.shape[:2]
 
         # 꼭지점 좌표 추출용 배열
         location_nparr = []
         approx = []
+
         while len(approx) != 4:
             approx = self.preprocessing_image(image)
-
-            if approx is None:
-                approx = []
-
-            if len(approx) == 4:
-                approx = np.array(sorted(approx, key=lambda x: x[0][0] + x[0][1]))
-                for point in approx:
-                    x, y = point[0]
-                    location_nparr.append([x, y+2.0])
-                location = np.array(location_nparr, np.float32)
-                print(location)
-
-                if self.current_button == "200-1":
-                    x = int(location[0][0]*0.84); x_1 = int(location[0][0]*0.6); y = int(location[0][1]*0.91); y_1 = int(location[0][1]*0.6)
-                    location[0][0] += x_1
-                    location[2][0] -= x
-
-                    location[0][1] += y
-                    location[2][1] += y
-
-                    location[1][0] += x_1
-                    location[3][0] -= x
-
-                    location[1][1] -= y_1
-                    location[3][1] -= y_1
-
-                elif self.current_button == "S_10x10":
-                    x = int(location[0][0]*0.71); x_1 = int(location[0][0]*0.71); y = int(location[0][1]*0.85); y_1 = int(location[0][1]*0.5)
-                    location[0][0] += x_1
-                    location[2][0] -= x
-
-                    location[0][1] += y
-                    location[2][1] += y
-
-                    location[1][0] += x_1
-                    location[3][0] -= x
-
-                    location[1][1] -= y_1
-                    location[3][1] -= y_1
-                
-                elif self.current_button == "10x10":
-                    x = int(location[0][0]*0.05); x_1 = int(location[0][0]*0.05); y = int(location[0][1]*0.05); y_1 = int(location[0][1]*0.05)
-                    location[0][0] += x_1
-                    location[2][0] -= x
-
-                    location[0][1] += y
-                    location[2][1] += y
-
-                    location[1][0] += x_1
-                    location[3][0] -= x
-
-                    location[1][1] -= y_1
-                    location[3][1] -= y_1
-                
-                elif self.current_button == "5x10":
-                    x = int(location[0][0]*0.15); x_1 = int(location[0][0]*0.06); y = int(location[0][1]*0.05); y_1 = int(location[0][1]*0.1)
-                    location[0][0] += x_1
-                    location[2][0] -= x
-
-                    location[0][1] += y
-                    location[2][1] += y
-
-                    location[1][0] += x_1
-                    location[3][0] -= x
-
-                    location[1][1] -= y_1
-                    location[3][1] -= y_1
-                
-                
-                location2 = np.array([[0, 0], [0, height], [width, 0], [width, height]], np.float32)
-                pers = cv2.getPerspectiveTransform(location, location2)
-                dst = cv2.warpPerspective(image, pers, (width, height))
-                break
-
-            else:
+            approx = approx[0]
+            if len(approx) != 4:
+                approx = [[]]
                 self.m += 2
                 if self.m == 101:
-                    dst = image
                     break
-        return dst
+                else:
+                    continue
+
+            else:
+                try:
+                    approx = np.array(sorted(approx, key=lambda x: x[0][0] + x[0][1]))
+                    for point in approx:
+                        x, y = point[0]
+                        location_nparr.append([x, y+2.0])
+                    location = np.array(location_nparr, np.float32)
+                    
+                    if self.current_button in ["200-1", "S_10x10"]:
+                        location = self.adjust_location(location, 0.17, 35, 0.17, 35)
+                    elif self.current_button in ["10x10", "5x10"]:
+                        location = self.adjust_location(location, 0.07, 0, 0.07, 0)
+
+                    # location2 = np.array([[0, 0], [0, height], [width, 0], [width, height]], np.float32)
+                    # pers = cv2.getPerspectiveTransform(location, location2)
+                    # dst = cv2.warpPerspective(image, pers, (width, height))
+                    x, y, w, h = cv2.boundingRect(np.array(location))
+                    dst = image[y:y+h, x:x+w]
+                    return dst, ""
+                except Exception as e:
+                    return dst, f"Error : {e}"
+        return dst, "None"
 
 class perform_object_detection:
     def __init__(self, frame: np.ndarray, current_button: str, threshold: float) -> None:
@@ -358,45 +325,3 @@ class perform_object_detection:
         output_image = cv2.putText(output_image, part_cell_text, (x, y+35), font, font_scale, font_color, font_thickness)
 
         return output_image
-    
-# if __name__ == "__main__":
-#     def close_dashboard(event):
-#         dashboard_window.destroy()
-
-#     # Tkinter의 대시보드 창을 생성하여 Figure를 표시
-#     dashboard_window = tk.Toplevel(root)
-#     dashboard_window.title("탐지 결과")
-#     dashboard_window.geometry("+0+0")  # 창의 위치를 왼쪽 상단으로 고정
-#     dashboard_window.state('zoomed') # 최대화 처리
-#     dashboard_window.bind("<Escape>", close_dashboard) # esc 키 누르면 탐색 결과창 꺼짐
-
-#     screen_width, screen_heigth = get_monitor_resolution()
-#     height, width = result_image.shape[:2]
-
-#     re_width = int(screen_width//2)
-#     re_height = int(height*(re_width/width))
-#     result_image = cv2.resize(result_image,(re_width, re_height))
-#     if current_button == "200-1":
-#         empty_cell_num -= 12
-    
-#     height, width, channels = result_image.shape
-#     # 상단에 추가할 빈 공간의 높이 설정
-#     top_padding = height//12  # 원하는 높이로 설정
-#     # 여백을 추가할 새로운 이미지 생성
-#     new_height = height + top_padding
-#     new_image = np.zeros((new_height, width, channels), dtype=np.uint8)
-#     # 기존 이미지를 새로운 이미지의 아래로 복사
-#     new_image[top_padding:, :] = result_image
-    
-#     cv2.putText(new_image, f"Redundant Cell : {part_cell_num}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-#     cv2.putText(new_image, f"Empty Cell : {empty_cell_num}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-#     # PIL 이미지로 변환
-#     pil_image = Image.fromarray(cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB))
-#     # Tkinter 이미지로 변환
-#     tk_image = ImageTk.PhotoImage(image=pil_image)
-    
-#     # 이미지 표시
-#     image_label = ttk.Label(dashboard_window,
-#                             image=tk_image)
-#     image_label.image = tk_image
-#     image_label.place(relx= 0.5, rely=0.5, anchor="center")

@@ -70,9 +70,9 @@ class MainView:
         self.root.attributes('-fullscreen', True)
         
         monitors = get_monitors()
-        self.screen_width, self.screen_height = monitors[0].width, monitors[0].height
-        print(self.screen_width//self.screen_height)
-        self.frame_height = self.screen_height // 10
+        self.screen_width = monitors[0].width
+        self.screen_height =  monitors[0].height
+        self.frame_height = (self.screen_height // 10)
 
         # 그리드의 크기를 설정합니다.
         self.root.grid_rowconfigure(4, weight=1)
@@ -295,7 +295,8 @@ class MainView:
     def capture_button_clicked(self, button_name: str):
         self.current_button = button_name
         IPE = IP.Edit(frame, self.current_button, self.threshold.get())
-        image = IPE.edit_image()
+        image, comment = IPE.edit_image()
+        self.output_list.insert(tk.END, comment)
         self.isave("Origin", image)
 
         IPpod = IP.perform_object_detection(image, self.current_button, self.threshold.get())
@@ -330,14 +331,17 @@ class MainView:
 
 
 if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()
     T = TW()
     if T() == True:
+        root.withdraw()
+        app = MainView(root)
         subapp = QApplication(sys.argv)
         loading_screen = LoadingScreen()
         loading_screen.show()
 
-        root = tk.Tk()
-        app = MainView(root)
+        
         cam = Camera()
         cam.open_camera()  # 카메라 열기
         cam.set_cap_size(app.screen_width, (app.screen_width*9)//16)
@@ -355,11 +359,8 @@ if __name__ == "__main__":
         while cam.is_camera_open():
             frame = cam.get_frame()  # 프레임 가져오기
             app.button_image = frame
-
-            # 비디오 레이블 이미지
-            height, width = frame.shape[:2]
-            cut_width = width//9
-            video_label_image = frame[:,cut_width : width-cut_width]
+            fream_Resolution = IC.Scale_Resolution(frame, 0.6)
+            video_label_image = cv2.resize(frame, fream_Resolution)
 
             try:
                 image_tk = ImageTk.PhotoImage(
