@@ -1,14 +1,17 @@
 import base64
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget
+app = QApplication([])
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt, QPoint
 from screeninfo import get_monitors
-
-import bin.logo_data as logo
-
+from bin.base64_data import logo_image_base64
 class LoadingScreen(QWidget):
-
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        LoadingScreen 클래스의 초기화 함수입니다.
+        로딩 화면을 설정하고, 이미지를 표시하는 등의 역할을 합니다.
+        """
         super().__init__()
         self.setWindowTitle(" ")
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.WindowTransparentForInput)
@@ -18,7 +21,7 @@ class LoadingScreen(QWidget):
         self.loading_label = QLabel(self)
 
         # 로딩 이미지를 base64로 변경하여 QLabel에 설정
-        base64_image = logo.image_base64
+        base64_image = logo_image_base64
         image_data = base64.b64decode(base64_image)
         image = QImage.fromData(image_data)
         pixmap = QPixmap.fromImage(image)
@@ -36,7 +39,11 @@ class LoadingScreen(QWidget):
         center_point = self.calculateCenterPoint()
         self.moveCenter(center_point)
 
-    def calculateCenterPoint(self):
+    def calculateCenterPoint(self) -> QPoint:
+        """
+        화면의 중앙 좌표를 계산하는 함수입니다.
+        연결된 모니터의 크기를 바탕으로 중앙 좌표를 계산하여 반환합니다.
+        """
         monitors = get_monitors()
         x = 0
         y = 0
@@ -50,14 +57,25 @@ class LoadingScreen(QWidget):
         else:
             return QPoint(x, y)
 
-    def moveCenter(self, point):
+    def moveCenter(self, point: QPoint) -> None:
+        """
+        로딩 화면을 화면의 중앙으로 이동시키는 함수입니다.
+        계산된 중앙 좌표를 바탕으로 로딩 화면의 위치를 이동시킵니다.
+        """
         qr = self.frameGeometry()
         qr.moveCenter(point)
         self.move(qr.topLeft())
 
-    def show(self):
+    def show(self) -> None:
+        """
+        로딩 화면을 표시하는 함수입니다.
+        부모 클래스의 show 메서드를 호출하여 로딩 화면을 표시합니다.
+        """
         super().show()
 
-    def close(self):
-        # 로딩 창을 닫음
+    def close(self) -> None:
+        """
+        로딩 화면을 닫는 함수입니다.
+        부모 클래스의 close 메서드를 호출하여 로딩 화면을 닫습니다.
+        """
         super().close()
